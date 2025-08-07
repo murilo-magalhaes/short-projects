@@ -50,7 +50,7 @@ export default function BetterWay() {
     return (
         <div className={'p-2'}>
             {Array.from({length: y}).map((_, y) => (
-                <div className={'flex'} key={y}>
+                <div className={'flex align-items-end'} key={y}>
                     <>
                         <div className={'h-2rem w-2rem text-center'}>
                             {y}
