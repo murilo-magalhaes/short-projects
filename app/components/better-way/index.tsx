@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import './styles.css';
 import {Button} from "primereact/button";
+import {InputSwitch} from "primereact/inputswitch";
 
 interface Coord {
     x: number;
@@ -46,6 +47,7 @@ export default function BetterWay() {
     const [isWalking, setIsWalking] = useState(false);
     const [isDeviating, setIsDeviating] = useState(false);
     const [isArrived, setIsArrived] = useState(false);
+    const [isAddingObstacles, setIsAddingObstacles] = useState(false);
 
     useEffect(() => {
         if (isWalking) {
@@ -73,9 +75,10 @@ export default function BetterWay() {
     const isWithinLimits = (coord: Coord) => coord.x >= 0 && coord.y >= 0 && coord.x < x && coord.y < y
 
     const identify = (coord: Coord): string => {
+        const _isOrigin = isOrigin(coord);
         return isObstacle(coord) ? 'obstacle' :
-            isArrived ? 'arrived' :
-                isOrigin(coord) ? 'origin' :
+            isArrived && _isOrigin ? 'arrived' :
+                _isOrigin ? 'origin' :
                     isDestiny(coord) ? 'destiny' :
                         isPathPassed(coord) ? 'path_passed' :
                             !isWithinLimits(coord) ? 'out_of_limits' :
@@ -165,9 +168,29 @@ export default function BetterWay() {
         }, DELAY)
     };
 
+    const addObstacle = (coord: Coord) => {
+        setObstacles(prev => {
+            if (!isObstacle(coord)) return [...prev, coord];
+            return prev
+        });
+    }
+
+    const remObstacle = (coord: Coord) => {
+        setObstacles(prev =>  prev.filter(o => !(o.x === coord.x && o.y === coord.y)));
+    }
+
+    const handleClickCell = (coord: Coord) => {
+        if (isObstacle(coord)) {
+            remObstacle(coord)
+        } else if (identify(coord) === 'free' && isAddingObstacles) {
+            addObstacle(coord)
+        }
+
+    }
+
     return (
-        <div className="m-2">
-            <div className={'grid mb-3'} style={{
+        <div className="p-2">
+            <div className={'grid mb-3 h-6rem'} style={{
                 width: `${2.2 * (x + 1)}rem`,
             }}>
                 <div className={'col-12'}>
@@ -177,8 +200,16 @@ export default function BetterWay() {
                         label={isWalking ? 'Parar' : 'Começar'}
                     />
                 </div>
-                {isWalking && <p>Movendo para {direction}</p>}
-                {hoveredCoord.x >= 0 && <p>Mouse em: ({hoveredCoord.x}, {hoveredCoord.y})</p>}
+                <div className={'col-4 flex align-items-center'}>
+                    <InputSwitch checked={isAddingObstacles} onChange={e => setIsAddingObstacles(e.target.value)} />
+                    <label className={'ml-2'} htmlFor={'add-obstacle'}>Add obstáculos</label>
+                </div>
+                <div className={'col-4'}>
+                    {isWalking && <p className={'m-0'}>Movendo para {direction}</p>}
+                </div>
+                <div className={'col-4'}>
+                    {hoveredCoord.x >= 0 && <p className={'m-0'}>Mouse em: ({hoveredCoord.x}, {hoveredCoord.y})</p>}
+                </div>
             </div>
 
             <div
@@ -204,6 +235,7 @@ export default function BetterWay() {
                                         <div
                                             onMouseEnter={() => setHoveredCoord({x, y: yCoord})}
                                             onMouseLeave={() => setHoveredCoord({x: -1, y: -1})}
+                                            onClick={() => handleClickCell({x, y: yCoord})}
                                             id={`${x}_${yCoord}`}
                                             className={`cell ${identify({x, y: yCoord})}`}
                                         ></div>
