@@ -30,11 +30,14 @@ const moves: { [direction: string]: Coord } = {
     [EDirection.RIGHT]: {x: 1, y: 0},
 }
 
-const DELAY = 300;
+const DELAY = 100;
 
 export default function BetterWay() {
     const [x, setX] = useState(20);
     const [y, setY] = useState(20);
+
+    const [highlightedRow, setHighlightedRow] = useState(-1);
+    const [highlightedColumn, setHighlightedColumn] = useState(-1);
 
     const [origin, setOrigin] = useState<Coord>({x: 1, y: 10});
     const [hoveredCoord, setHoveredCoord] = useState<Coord>({x: -1, y: -1});
@@ -42,6 +45,7 @@ export default function BetterWay() {
     const [obstacles, setObstacles] = useState<Coord[]>(mockObstacles);
 
     const [direction, setDirection] = useState<EDirection>(EDirection.RIGHT);
+    const [deviatingDirection, setDeviatingDirection] = useState<EDirection>(EDirection.RIGHT);
     const [pathPassed, setPathPassed] = useState<Coord[]>([]);
 
     const [isWalking, setIsWalking] = useState(false);
@@ -69,7 +73,7 @@ export default function BetterWay() {
     const isOrigin = (coord: Coord) =>
         origin.x === coord.x && origin.y === coord.y;
 
-    const isDestiny = (coord: Coord) =>
+    const isTarget = (coord: Coord) =>
         target.x === coord.x && target.y === coord.y;
 
     const isWithinLimits = (coord: Coord) => coord.x >= 0 && coord.y >= 0 && coord.x < x && coord.y < y
@@ -79,7 +83,7 @@ export default function BetterWay() {
         return isObstacle(coord) ? 'obstacle' :
             isArrived && _isOrigin ? 'arrived' :
                 _isOrigin ? 'origin' :
-                    isDestiny(coord) ? 'destiny' :
+                    isTarget(coord) ? 'target' :
                         isPathPassed(coord) ? 'path_passed' :
                             !isWithinLimits(coord) ? 'out_of_limits' :
                                 'free';
@@ -94,7 +98,7 @@ export default function BetterWay() {
     const manualMove = (dir: EDirection) => {
         setOrigin(prev => {
             const next = moveTo(prev, dir);
-            if (['free', 'path_passed', 'destiny'].includes(identify(next))) {
+            if (['free', 'path_passed', 'target'].includes(identify(next))) {
                 return next;
             }
             return prev;
@@ -145,7 +149,7 @@ export default function BetterWay() {
             if (Math.abs(horizontal) > Math.abs(vertical)) {
                 newDir = origin.x < target.x ? EDirection.RIGHT : EDirection.LEFT;
                 next = moveTo(origin, newDir);
-                if (!['free', 'path_passed', 'destiny'].includes(identify(next))) {
+                if (!['free', 'path_passed', 'target'].includes(identify(next))) {
                     newDir = (origin.y < target.y && !isDeviating) ? EDirection.DOWN : EDirection.UP;
                     _isDeviating = true
                     next = moveTo(origin, newDir);
@@ -153,7 +157,7 @@ export default function BetterWay() {
             } else {
                 newDir = origin.y < target.y ? EDirection.DOWN : EDirection.UP;
                 next = moveTo(origin, newDir);
-                if (!['free', 'path_passed', 'destiny'].includes(identify(next))) {
+                if (!['free', 'path_passed', 'target'].includes(identify(next))) {
                     newDir = (origin.x < target.x && !isDeviating) ? EDirection.RIGHT : EDirection.LEFT;
                     _isDeviating = true
                     next = moveTo(origin, newDir);
@@ -176,7 +180,7 @@ export default function BetterWay() {
     }
 
     const remObstacle = (coord: Coord) => {
-        setObstacles(prev =>  prev.filter(o => !(o.x === coord.x && o.y === coord.y)));
+        setObstacles(prev => prev.filter(o => !(o.x === coord.x && o.y === coord.y)));
     }
 
     const handleClickCell = (coord: Coord) => {
@@ -185,7 +189,6 @@ export default function BetterWay() {
         } else if (identify(coord) === 'free' && isAddingObstacles) {
             addObstacle(coord)
         }
-
     }
 
     return (
@@ -201,7 +204,7 @@ export default function BetterWay() {
                     />
                 </div>
                 <div className={'col-4 flex align-items-center'}>
-                    <InputSwitch checked={isAddingObstacles} onChange={e => setIsAddingObstacles(e.target.value)} />
+                    <InputSwitch checked={isAddingObstacles} onChange={e => setIsAddingObstacles(e.target.value)}/>
                     <label className={'ml-2'} htmlFor={'add-obstacle'}>Add obstáculos</label>
                 </div>
                 <div className={'col-4'}>
@@ -220,24 +223,39 @@ export default function BetterWay() {
                     height: `${2.2 * (y + 1)}rem`
                 }}
             >
-                {Array.from({length: y + 2}).map((_, i) => {
+                {Array.from({length: y + 1}).map((_, i) => {
                     const yCoord = i - 1;
                     return (
-                        <div className="flex align-items-end p-0 m-0" key={yCoord}>
-                            <div className="cell p-0 m-0"
-                                 style={{borderRight: '1px solid #000'}}>{yCoord >= 0 ? yCoord : ''}</div>
+                        <div
+                            className="flex align-items-end p-0 m-0" key={yCoord}>
+                            <div
+                                onMouseEnter={() => setHighlightedRow(yCoord)}
+                                onMouseLeave={() => setHighlightedRow(-1)}
+                                className="cell p-0 m-0"
+                                style={{
+                                    backgroundColor: 'lightgray',
+                                    borderRight: '1px solid #000'
+                                }}>{yCoord >= 0 ? yCoord : ''}</div>
                             {Array.from({length: x}).map((_, x) => (
                                 <div className="flex flex-column" key={x}>
                                     {yCoord === -1 ? (
                                         <div className="cell flex align-items-center justify-content-center"
-                                             style={{borderBottom: '1px solid #000'}}>{x}</div>
+                                             onMouseEnter={() => setHighlightedColumn(x)}
+                                             onMouseLeave={() => setHighlightedColumn(-1)}
+                                             style={{
+                                                 backgroundColor: 'lightgray',
+                                                 borderBottom: '1px solid #000'
+                                             }}>{x}</div>
                                     ) : (
                                         <div
                                             onMouseEnter={() => setHoveredCoord({x, y: yCoord})}
                                             onMouseLeave={() => setHoveredCoord({x: -1, y: -1})}
                                             onClick={() => handleClickCell({x, y: yCoord})}
                                             id={`${x}_${yCoord}`}
-                                            className={`cell ${identify({x, y: yCoord})}`}
+                                            className={`cell ${identify({
+                                                x,
+                                                y: yCoord
+                                            })} ${x === highlightedColumn || yCoord === highlightedRow ? 'highlight' : ''}`}
                                         ></div>
                                     )}
                                 </div>

@@ -9,7 +9,7 @@
     text-align: center;
 }
 
-.free:hover {
+.free:hover, .highlight {
     background-color: lightblue;
 }
 
@@ -29,6 +29,6 @@
     background-color: lightgray;
 }
 
-.destiny {
+.target {
     background-color: yellow;
 }
