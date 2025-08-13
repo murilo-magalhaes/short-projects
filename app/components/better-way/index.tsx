@@ -4,17 +4,73 @@ import {useEffect, useState} from "react";
 import './styles.css';
 import {Button} from "primereact/button";
 import {InputSwitch} from "primereact/inputswitch";
+import {Dropdown} from "primereact/dropdown";
 
 interface Coord {
     x: number;
     y: number;
 }
 
-const mockObstacles: Coord[] = [
-    {x: 10, y: 10},
-    {x: 10, y: 9},
-    {x: 10, y: 11},
+interface Map {
+    origin: Coord;
+    target: Coord;
+    obstacles: Coord[];
+}
+
+const maps: Map[] = [
+    {
+        origin: {x: 1, y: 9},
+        target: {x: 18, y: 9},
+        obstacles: [
+            {x: 9, y: 9},
+            {x: 9, y: 8},
+            {x: 9, y: 10},
+            {x: 8, y: 8},
+        ]
+    },
+    {
+        origin: {x: 0, y: 0},
+        target: {x: 18, y: 19},
+        obstacles: [
+            {x: 3, y: 0},
+            {x: 1, y: 1}, {x: 3, y: 1}, {x: 7, y: 1}, {x: 12, y: 1},
+            {x: 1, y: 2}, {x: 5, y: 2}, {x: 7, y: 2}, {x: 10, y: 2}, {x: 14, y: 2}, {x: 16, y: 2},
+            {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 5, y: 3}, {x: 9, y: 3}, {x: 10, y: 3}, {x: 14, y: 3}, {
+                x: 18,
+                y: 3
+            },
+            {x: 3, y: 4}, {x: 5, y: 4}, {x: 13, y: 4}, {x: 16, y: 4}, {x: 18, y: 4},
+            {x: 1, y: 5}, {x: 3, y: 5}, {x: 5, y: 5}, {x: 6, y: 5}, {x: 9, y: 5}, {x: 11, y: 5}, {x: 14, y: 5}, {
+                x: 16,
+                y: 5
+            },
+            {x: 1, y: 6}, {x: 9, y: 6}, {x: 14, y: 6}, {x: 16, y: 6},
+            {x: 1, y: 7}, {x: 2, y: 7}, {x: 3, y: 7}, {x: 4, y: 7}, {x: 5, y: 7}, {x: 9, y: 7}, {x: 12, y: 7}, {
+                x: 14,
+                y: 7
+            }, {x: 16, y: 7},
+            {x: 9, y: 8}, {x: 12, y: 8}, {x: 16, y: 8},
+            {x: 1, y: 9}, {x: 2, y: 9}, {x: 4, y: 9}, {x: 5, y: 9}, {x: 6, y: 9}, {x: 9, y: 9}, {x: 16, y: 9},
+            {x: 1, y: 10}, {x: 9, y: 10}, {x: 10, y: 10}, {x: 11, y: 10}, {x: 14, y: 10}, {x: 16, y: 10},
+            {x: 1, y: 11}, {x: 2, y: 11}, {x: 3, y: 11}, {x: 4, y: 11}, {x: 6, y: 11}, {x: 14, y: 11}, {x: 18, y: 11},
+            {x: 4, y: 12}, {x: 6, y: 12}, {x: 8, y: 12}, {x: 10, y: 12}, {x: 12, y: 12}, {x: 14, y: 12}, {x: 16, y: 12},
+            {x: 1, y: 13}, {x: 2, y: 13}, {x: 4, y: 13}, {x: 9, y: 13}, {x: 14, y: 13}, {x: 16, y: 13},
+            {x: 1, y: 14}, {x: 4, y: 14}, {x: 5, y: 14}, {x: 6, y: 14}, {x: 9, y: 14}, {x: 14, y: 14}, {x: 16, y: 14},
+            {x: 1, y: 15}, {x: 3, y: 15}, {x: 9, y: 15}, {x: 11, y: 15}, {x: 14, y: 15}, {x: 16, y: 15},
+            {x: 3, y: 16}, {x: 5, y: 16}, {x: 6, y: 16}, {x: 7, y: 16}, {x: 8, y: 16}, {x: 9, y: 16}, {x: 11, y: 16}, {
+                x: 14,
+                y: 16
+            }, {x: 16, y: 16},
+            {x: 1, y: 17}, {x: 11, y: 17}, {x: 14, y: 17}, {x: 16, y: 17},
+            {x: 1, y: 18}, {x: 2, y: 18}, {x: 3, y: 18}, {x: 4, y: 18}, {x: 5, y: 18}, {x: 6, y: 18}, {x: 7, y: 18}, {
+                x: 8,
+                y: 18
+            }, {x: 9, y: 18}, {x: 11, y: 18}, {x: 14, y: 18}, {x: 16, y: 18},
+            {x: 11, y: 19}, {x: 14, y: 19}, {x: 16, y: 19}
+        ]
+    }
 ]
+
 
 enum EDirection {
     UP = 'cima',
@@ -32,6 +88,9 @@ const moves: { [direction: string]: Coord } = {
 
 const DELAY = 100;
 
+type VerticalDeviating = EDirection.UP | EDirection.DOWN;
+type HorizontalDeviating = EDirection.RIGHT | EDirection.LEFT;
+
 export default function BetterWay() {
     const [x, setX] = useState(20);
     const [y, setY] = useState(20);
@@ -39,19 +98,22 @@ export default function BetterWay() {
     const [highlightedRow, setHighlightedRow] = useState(-1);
     const [highlightedColumn, setHighlightedColumn] = useState(-1);
 
-    const [origin, setOrigin] = useState<Coord>({x: 1, y: 10});
+    const [origin, setOrigin] = useState<Coord>(maps[0].origin);
     const [hoveredCoord, setHoveredCoord] = useState<Coord>({x: -1, y: -1});
-    const [target, setTarget] = useState<Coord>({x: 19, y: 10});
-    const [obstacles, setObstacles] = useState<Coord[]>(mockObstacles);
+    const [target, setTarget] = useState<Coord>(maps[0].target);
+    const [obstacles, setObstacles] = useState<Coord[]>(maps[0].obstacles);
 
-    const [direction, setDirection] = useState<EDirection>(EDirection.RIGHT);
-    const [deviatingDirection, setDeviatingDirection] = useState<EDirection>(EDirection.RIGHT);
+    const [direction, setDirection] = useState<EDirection | undefined>(undefined);
+    const [verticalDeviating, setVerticalDeviating] = useState<VerticalDeviating | undefined>(undefined);
+    const [horizontalDeviating, setHorizontalDeviating] = useState<VerticalDeviating | undefined>(undefined);
     const [pathPassed, setPathPassed] = useState<Coord[]>([]);
 
     const [isWalking, setIsWalking] = useState(false);
     const [isDeviating, setIsDeviating] = useState(false);
     const [isArrived, setIsArrived] = useState(false);
     const [isAddingObstacles, setIsAddingObstacles] = useState(false);
+
+    const [map, setMap] = useState<number>(0);
 
     useEffect(() => {
         if (isWalking) {
@@ -105,6 +167,13 @@ export default function BetterWay() {
         })
     }
 
+    const handleChangeMap = (map: number) => {
+        setMap(map)
+        setOrigin(maps[map].origin)
+        setTarget(maps[map].target);
+        setObstacles(maps[map].obstacles);
+    }
+
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             switch (event.key) {
@@ -136,9 +205,10 @@ export default function BetterWay() {
         };
     }, []);
 
+    const canMove = (coord: Coord) => ['free', 'path_passed', 'target'].includes(identify(coord))
+
     const walk = () => {
         setTimeout(() => {
-
             const horizontal = origin.x - target.x;
             const vertical = origin.y - target.y;
 
@@ -149,22 +219,27 @@ export default function BetterWay() {
             if (Math.abs(horizontal) > Math.abs(vertical)) {
                 newDir = origin.x < target.x ? EDirection.RIGHT : EDirection.LEFT;
                 next = moveTo(origin, newDir);
-                if (!['free', 'path_passed', 'target'].includes(identify(next))) {
-                    newDir = (origin.y < target.y && !isDeviating) ? EDirection.DOWN : EDirection.UP;
+                if (!canMove(next)) {
+                    console.log('obstáculo')
+                    newDir = origin.y < target.y ? EDirection.DOWN : EDirection.UP;
                     _isDeviating = true
                     next = moveTo(origin, newDir);
+                    if (!canMove(next)) {
+
+                    }
                 }
             } else {
                 newDir = origin.y < target.y ? EDirection.DOWN : EDirection.UP;
                 next = moveTo(origin, newDir);
                 if (!['free', 'path_passed', 'target'].includes(identify(next))) {
-                    newDir = (origin.x < target.x && !isDeviating) ? EDirection.RIGHT : EDirection.LEFT;
+                    console.log('obstáculo')
+                    newDir = origin.x < target.x ? EDirection.RIGHT : EDirection.LEFT;
                     _isDeviating = true
                     next = moveTo(origin, newDir);
                 }
             }
 
-            console.log({newDir, next})
+            console.log(newDir, next)
             setDirection(newDir);
             setIsDeviating(_isDeviating)
             setPathPassed(prev => [...prev, origin])
@@ -193,14 +268,28 @@ export default function BetterWay() {
 
     return (
         <div className="p-2">
+
+            {/*<Image alt={'lince'} height={200} width={400} src={'/lince.png'}/>*/}
+
             <div className={'grid mb-3 h-6rem'} style={{
                 width: `${2.2 * (x + 1)}rem`,
             }}>
-                <div className={'col-12'}>
+                <div className={'col-4'}>
+                    <Dropdown className={'w-full'} placeholder={'Selecione um mapa'} value={map} onChange={e => handleChangeMap(e.value)}
+                              options={maps.map((_, i) => ({label: `Mapa ${i + 1}`, value: i}))}/>
+                </div>
+                <div className={'col-4'}>
                     <Button
                         className={'w-full'}
                         onClick={() => setIsWalking(prev => !prev)}
                         label={isWalking ? 'Parar' : 'Começar'}
+                    />
+                </div>
+                <div className={'col-4'}>
+                    <Button
+                        className={'w-full'}
+                        onClick={walk}
+                        label={'Passo'}
                     />
                 </div>
                 <div className={'col-4 flex align-items-center'}>
