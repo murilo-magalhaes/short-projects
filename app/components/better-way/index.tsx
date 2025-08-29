@@ -88,9 +88,6 @@ const moves: { [direction: string]: Coord } = {
 
 const DELAY = 100;
 
-type VerticalDeviating = EDirection.UP | EDirection.DOWN;
-type HorizontalDeviating = EDirection.RIGHT | EDirection.LEFT;
-
 export default function BetterWay() {
     const [x, setX] = useState(20);
     const [y, setY] = useState(20);
@@ -104,8 +101,8 @@ export default function BetterWay() {
     const [obstacles, setObstacles] = useState<Coord[]>(maps[0].obstacles);
 
     const [direction, setDirection] = useState<EDirection | undefined>(undefined);
-    const [verticalDeviating, setVerticalDeviating] = useState<VerticalDeviating | undefined>(undefined);
-    const [horizontalDeviating, setHorizontalDeviating] = useState<VerticalDeviating | undefined>(undefined);
+    const [verticalDeviating, setVerticalDeviating] = useState<EDirection | undefined>(undefined);
+    const [horizontalDeviating, setHorizontalDeviating] = useState<EDirection | undefined>(undefined);
     const [pathPassed, setPathPassed] = useState<Coord[]>([]);
 
     const [isWalking, setIsWalking] = useState(false);
@@ -154,12 +151,12 @@ export default function BetterWay() {
     const isSameCoord = (a: Coord, b: Coord) =>
         a.x === b.x && a.y === b.y;
 
-    const moveTo = (coord: Coord, dir: EDirection) =>
+    const getCoordAtDirection = (coord: Coord, dir: EDirection) =>
         ({x: coord.x + moves[dir].x, y: coord.y + moves[dir].y});
 
     const manualMove = (dir: EDirection) => {
         setOrigin(prev => {
-            const next = moveTo(prev, dir);
+            const next = getCoordAtDirection(prev, dir);
             if (['free', 'path_passed', 'target'].includes(identify(next))) {
                 return next;
             }
@@ -205,45 +202,81 @@ export default function BetterWay() {
         };
     }, []);
 
-    const canMove = (coord: Coord) => ['free', 'path_passed', 'target'].includes(identify(coord))
+    const isFree = (coord: Coord) => ['free', 'path_passed', 'target'].includes(identify(coord))
+
+    const checkHorizontalMoves = (coord: Coord): EDirection | undefined => {
+        if (horizontalDeviating) return horizontalDeviating;
+
+        let _horizontalDeviating: EDirection | undefined = horizontalDeviating;
+        let nextDir: EDirection | undefined = undefined;
+
+        if (coord.x <= target.x) {
+            if (isFree(getCoordAtDirection(coord, EDirection.RIGHT))) {
+                console.log('Caminho livre para DIREITA')
+                nextDir = EDirection.RIGHT
+            } else {
+                console.log('Caminho bloqueado para DIREITA, definindo horizontalDeviating como LEFT')
+                _horizontalDeviating = EDirection.LEFT
+            }
+        } else {
+            if (isFree(getCoordAtDirection(coord, EDirection.LEFT))) {
+                console.log('Caminho livre para ESQUERDA')
+                nextDir = EDirection.LEFT
+            } else {
+                console.log('Caminho bloqueado para ESQUERDA, definindo horizontalDeviating como RIGHT')
+                _horizontalDeviating = EDirection.RIGHT
+            }
+        }
+
+        setVerticalDeviating(_horizontalDeviating)
+
+        return nextDir;
+    }
+
+    const checkVerticalMoves = (coord: Coord): EDirection | undefined => {
+        if (verticalDeviating) return verticalDeviating;
+
+        let _verticalDeviating: EDirection | undefined = verticalDeviating;
+        let nextDir: EDirection | undefined = undefined;
+
+        if (coord.y <= target.y) {
+            if (isFree(getCoordAtDirection(coord, EDirection.DOWN))) {
+                console.log('Caminho livre para BAIXO')
+                nextDir = EDirection.DOWN
+            } else {
+                console.log('Caminho bloqueado para BAIXO, definindo verticalDeviating como UP')
+                _verticalDeviating = EDirection.UP
+            }
+        } else {
+            if (isFree(getCoordAtDirection(coord, EDirection.UP))) {
+                console.log('Caminho livre para CIMA')
+                nextDir = EDirection.UP
+            } else {
+                console.log('Caminho bloqueado para CIMA, definindo verticalDeviating como DOWN')
+                _verticalDeviating = EDirection.DOWN
+            }
+        }
+        setVerticalDeviating(_verticalDeviating)
+
+        return nextDir;
+    }
+
+    console.log({verticalDeviating, horizontalDeviating})
 
     const walk = () => {
         setTimeout(() => {
-            const horizontal = origin.x - target.x;
-            const vertical = origin.y - target.y;
+            let nextDir = !verticalDeviating ? checkHorizontalMoves(origin) : checkVerticalMoves(origin)
+            if (!nextDir) nextDir = checkVerticalMoves(origin)
+            console.log(nextDir)
 
-            let newDir: EDirection;
-            let next: Coord;
-            let _isDeviating = false;
-
-            if (Math.abs(horizontal) > Math.abs(vertical)) {
-                newDir = origin.x < target.x ? EDirection.RIGHT : EDirection.LEFT;
-                next = moveTo(origin, newDir);
-                if (!canMove(next)) {
-                    console.log('obstáculo')
-                    newDir = origin.y < target.y ? EDirection.DOWN : EDirection.UP;
-                    _isDeviating = true
-                    next = moveTo(origin, newDir);
-                    if (!canMove(next)) {
-
-                    }
-                }
-            } else {
-                newDir = origin.y < target.y ? EDirection.DOWN : EDirection.UP;
-                next = moveTo(origin, newDir);
-                if (!['free', 'path_passed', 'target'].includes(identify(next))) {
-                    console.log('obstáculo')
-                    newDir = origin.x < target.x ? EDirection.RIGHT : EDirection.LEFT;
-                    _isDeviating = true
-                    next = moveTo(origin, newDir);
-                }
+            if (nextDir) {
+                const next = getCoordAtDirection(origin, nextDir);
+                setDirection(nextDir);
+                setPathPassed(prev => [...prev, origin])
+                setOrigin(next);
+                setDirection(nextDir)
             }
 
-            console.log(newDir, next)
-            setDirection(newDir);
-            setIsDeviating(_isDeviating)
-            setPathPassed(prev => [...prev, origin])
-            setOrigin(next);
         }, DELAY)
     };
 
@@ -275,8 +308,13 @@ export default function BetterWay() {
                 width: `${2.2 * (x + 1)}rem`,
             }}>
                 <div className={'col-4'}>
-                    <Dropdown className={'w-full'} placeholder={'Selecione um mapa'} value={map} onChange={e => handleChangeMap(e.value)}
-                              options={maps.map((_, i) => ({label: `Mapa ${i + 1}`, value: i}))}/>
+                    <Dropdown
+                        className={'w-full'}
+                        placeholder={'Selecione um mapa'}
+                        value={map}
+                        onChange={e => handleChangeMap(e.value)}
+                        options={maps.map((_, i) => ({label: `Mapa ${i + 1}`, value: i}))}
+                    />
                 </div>
                 <div className={'col-4'}>
                     <Button

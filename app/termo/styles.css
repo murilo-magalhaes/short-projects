@@ -1,0 +1,69 @@
+:root {
+    --bg-termo: #6E5C62;
+    --bg-input: #615458;
+    --bg-text: #4D4347;
+}
+
+.bg-termo {
+    background-color: var(--bg-termo);
+}
+
+.bg-input {
+    background-color: var(--bg-input);
+}
+
+.input-current {
+    margin-bottom: 10px;
+    width: 14.5rem;
+}
+
+.letter {
+    background-color: var(--bg-input);
+    width: 2.5rem;
+    height: 2.7rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.letter-green {
+    background-color: lime;
+    color: black;
+}
+
+.letter-yellow {
+    background-color: yellow;
+    color: black
+}
+
+.letter-gray {
+    background-color: gray;
+}
+
+.text-success {
+    color: lime;
+}
+
+.text-error {
+    color: red;
+}
+
+/* Afeta todos os inputs do InputOtp */
+.p-inputotp .p-inputtext {
+    color: #fff;
+    font-size: 1.2rem;
+    width: 2.5rem;
+    height: 2.7rem;
+    padding: 0;
+    background-color: var(--bg-termo) !important; /* cor desejada */
+    border: 3px solid var(--bg-text) !important; /* cor desejada */
+}
+
+.current {
+    background-color: var(--bg-termo) !important; /* cor desejada */
+    border-color: var(--bg-text) !important; /* cor desejada */
+}
