@@ -4,6 +4,7 @@ import {CSSProperties, useEffect, useState} from "react";
 import './styles.css'
 import {underline} from "next/dist/lib/picocolors";
 import {InputSwitch} from "primereact/inputswitch";
+import {io} from "socket.io-client";
 
 enum ESymbol {
     X = 'X',
@@ -33,6 +34,8 @@ const possibleVictories = [
     [3, 5, 7],
 ]
 
+let socket: any;
+
 export default function Tictactoe() {
     const [currentGame, setCurrentGame] = useState(0);
     const [turn, setTurn] = useState<ESymbol>(ESymbol.X);
@@ -60,9 +63,29 @@ export default function Tictactoe() {
         setGames(games);
     }, [])
 
+    const openWs = async (): Promise<void> => {
+        await fetch('/api/socket').then( r => {
+            socket = io();
+            socket.on('receive-message', (data: any) => {
+                console.log(data);
+            });
+
+            return () => socket.disconnect();
+        });
+    }
+
+    useEffect(() => {
+        // Inicializa a rota da API primeiro
+        openWs().then()
+    }, []);
+
     useEffect(() => {
         checkMainVictory()
     }, [games]);
+
+    const sendMessage = () => {
+        socket.emit('send-message', { text: 'teste' });
+    };
 
     const renderSymbol = (gameId: number, cellId: number) => {
         const symbol = games[gameId - 1]?.cells[cellId - 1]?.symbol;
@@ -181,6 +204,8 @@ export default function Tictactoe() {
         setGames(_games);
         setTurn(prev => prev === ESymbol.X ? ESymbol.O : ESymbol.X);
         setCurrentGame(games[cellId - 1]?.winner || (cellId === selectedGame.id && selectedGame.winner) ? 0 : cellId)
+
+        sendMessage();
 
     }
 
