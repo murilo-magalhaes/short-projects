@@ -62,9 +62,6 @@ export default function Tictactoe() {
 
     useEffect(() => {
         checkMainVictory()
-        games.forEach(game => {
-            if (game.mark > 0) console.log(game.id, game.mark);
-        })
     }, [games]);
 
     const renderSymbol = (gameId: number, cellId: number) => {
@@ -76,7 +73,6 @@ export default function Tictactoe() {
     const drawMark = (mark: number): CSSProperties | undefined => {
         if (!mark) return;
 
-        console.log({mark})
         let style = {}
         if (mark <= 3) {
             style = {
@@ -94,7 +90,6 @@ export default function Tictactoe() {
                 top: '80px',
             }
         }
-        console.log(style)
         return style
     }
 
@@ -156,37 +151,36 @@ export default function Tictactoe() {
         if (winner) return;
 
         let selectedGame = {} as Game;
-        setGames(prev =>
-            prev.map((game) => {
-                if (game.id === gameId) {
-                    selectedGame = {
-                        ...game,
-                        cells: game.cells.map((cell) => {
-                            if (cell.id === cellId) {
-                                return {
-                                    ...cell,
-                                    symbol: turn
-                                };
-                            } else {
-                                return cell;
-                            }
-                        }),
-                    }
-
-                    const victoryIndex = checkVictory(selectedGame)
-                    if (victoryIndex > 0) {
-                        selectedGame.winner = turn
-                        selectedGame.mark = victoryIndex
-                    }
-                    return selectedGame;
-                } else {
-                    return game;
+        const _games = games.map((game) => {
+            if (game.id === gameId) {
+                selectedGame = {
+                    ...game,
+                    cells: game.cells.map((cell) => {
+                        if (cell.id === cellId) {
+                            return {
+                                ...cell,
+                                symbol: turn
+                            };
+                        } else {
+                            return cell;
+                        }
+                    }),
                 }
-            }),
-        );
 
+                const victoryIndex = checkVictory(selectedGame)
+                if (victoryIndex > 0) {
+                    selectedGame.winner = turn
+                    selectedGame.mark = victoryIndex
+                }
+                return selectedGame;
+            } else {
+                return game;
+            }
+        })
+
+        setGames(_games);
         setTurn(prev => prev === ESymbol.X ? ESymbol.O : ESymbol.X);
-        setCurrentGame(games[cellId - 1]?.winner ? 0 : cellId)
+        setCurrentGame(games[cellId - 1]?.winner || (cellId === selectedGame.id && selectedGame.winner) ? 0 : cellId)
 
     }
 
