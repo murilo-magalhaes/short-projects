@@ -189,7 +189,7 @@ export default function Tictactoe() {
     return (
         <div className={'md:px-8 px-3 w-full flex flex-column justify-content-start align-items-center'}>
             <h1 className={'text-center'}>Jogo da Velha 2</h1>
-            <div className={'flex w-6 justify-content-between align-items-center'}>
+            <div className={'flex w-full md:w-6 justify-content-between align-items-center'}>
                 <h2>Vez de <span className={turn}>{turn}</span></h2>
                 <div className={'flex align-items-center gap-2'}>
                     <label htmlFor={'showInnerGames'}>Exibir jogos vencidos</label>
