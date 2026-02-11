@@ -206,7 +206,7 @@ export default function Tictactoe() {
                 <div className={'biggame grid'}>
                     {Array.from({length: 9}).map((_, i) => (
                         <div key={i}
-                             className={`cell p-0 col-4 flex justify-content-center align-items-center p-3 ${(i + 1 === currentGame || (currentGame === 0 && !games[i]?.winner)) && !winner ? 'highlighted' : ''}`}
+                             className={`cell p-0 col-4 flex justify-content-center align-items-center p-3 ${(i + 1 === currentGame || (currentGame === 0 && !games[i]?.winner)) && !winner ? `highlighted_${turn}` : ''}`}
                              style={{
                                  borderRight: [0, 1, 3, 4, 6, 7].includes(i) ? `4px solid black` : 'none',
                                  borderBottom: i < 6 ? `4px solid black` : 'none',
