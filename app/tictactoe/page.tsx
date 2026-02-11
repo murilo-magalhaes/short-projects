@@ -70,24 +70,24 @@ export default function Tictactoe() {
             return <span className={symbol}>{symbol}</span>
     }
 
-    const drawMark = (mark: number): CSSProperties | undefined => {
+    const drawMark = (mark: number, bigGame = false): CSSProperties | undefined => {
         if (!mark) return;
 
         let style = {}
         if (mark <= 3) {
             style = {
-                top: `${25 + ((mark - 1) * 55)}px`,
+                top: `${(bigGame ? 80 : 25) + ((mark - 1) * (bigGame ? 200 : 55))}px`,
             }
         } else if (mark <= 6) {
             style = {
                 transform: 'rotate(90deg)',
-                top: '80px',
-                left: `${-55 + ((mark - 4) * 55)}px`,
+                top: bigGame ? '280px' : '80px',
+                left: `${(bigGame ? -200 : -55) + ((mark - 4) * (bigGame ? 200 : 55))}px`,
             }
         } else {
             style = {
                 transform: `rotate(${mark === 7 ? 45 : -45}deg) scale(1.3)`,
-                top: '80px',
+                top: bigGame ? '285px' : '80px',
             }
         }
         return style
@@ -97,24 +97,24 @@ export default function Tictactoe() {
         const game = games[gameId - 1];
 
         return <div className={'game grid w-full relative'}>
-                {game?.winner && <>
+            {game?.winner && <>
                     <span
                         className={`bigsymbol outlined ${game?.winner}`}>{game?.winner}</span>
-                </>}
-                {!(game?.winner && !showInnerGames) && <>
+            </>}
+            {!(game?.winner && !showInnerGames) && <>
                 {game?.winner && <div className={`mark ${game?.winner}`}
-                                     style={drawMark(game.mark)}
+                                      style={drawMark(game.mark)}
                 ></div>}
-                    {
-                        Array.from({length: 9}).map((_, i) => (
-                            <div key={`cell_${i}`} className={'cell col-4 md:text-4xl'} style={{
-                                borderRight: [0, 1, 3, 4, 6, 7].includes(i) ? `2px solid black` : 'none',
-                                borderBottom: i < 6 ? `2px solid black` : 'none'
-                            }} onClick={() => handleClickCell(gameId, i + 1)}>{renderSymbol(gameId, i + 1)}</div>
-                        ))
-                 }
-                 </>
+                {
+                    Array.from({length: 9}).map((_, i) => (
+                        <div key={`cell_${i}`} className={'cell col-4 md:text-4xl'} style={{
+                            borderRight: [0, 1, 3, 4, 6, 7].includes(i) ? `2px solid black` : 'none',
+                            borderBottom: i < 6 ? `2px solid black` : 'none'
+                        }} onClick={() => handleClickCell(gameId, i + 1)}>{renderSymbol(gameId, i + 1)}</div>
+                    ))
                 }
+            </>
+            }
         </div>
 
     }
@@ -184,6 +184,7 @@ export default function Tictactoe() {
 
     }
 
+    console.log({winner, mark})
 
     return (
         <div className={'md:px-8 px-3 w-full flex flex-column justify-content-start align-items-center'}>
@@ -197,17 +198,23 @@ export default function Tictactoe() {
                 </div>
             </div>
 
-            <div className={'biggame grid'}>
-                {Array.from({length: 9}).map((_, i) => (
-                    <div key={i}
-                         className={`cell p-0 col-4 flex justify-content-center align-items-center p-3 ${(i + 1 === currentGame || (currentGame === 0 && !games[i]?.winner)) && !winner ? 'highlighted' : ''}`}
-                         style={{
-                             borderRight: [0, 1, 3, 4, 6, 7].includes(i) ? `4px solid black` : 'none',
-                             borderBottom: i < 6 ? `4px solid black` : 'none',
-                         }}>
-                        {renderGame(i + 1)}
-                    </div>
-                ))}
+            <div className={'relative'}>
+                {winner && <div className={`mark ${winner}`}
+                                style={drawMark(mark, true)}
+                ></div>}
+
+                <div className={'biggame grid'}>
+                    {Array.from({length: 9}).map((_, i) => (
+                        <div key={i}
+                             className={`cell p-0 col-4 flex justify-content-center align-items-center p-3 ${(i + 1 === currentGame || (currentGame === 0 && !games[i]?.winner)) && !winner ? 'highlighted' : ''}`}
+                             style={{
+                                 borderRight: [0, 1, 3, 4, 6, 7].includes(i) ? `4px solid black` : 'none',
+                                 borderBottom: i < 6 ? `4px solid black` : 'none',
+                             }}>
+                            {renderGame(i + 1)}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )
