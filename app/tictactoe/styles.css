@@ -6,8 +6,12 @@
     align-items: center;
 }
 
-.highlighted {
-    background-color: #b2ffb3;
+.highlighted_X {
+    background-color: var(--blue-200);
+}
+
+.highlighted_O {
+    background-color: var(--red-200);
 }
 
 .biggame {
