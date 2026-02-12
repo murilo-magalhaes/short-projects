@@ -22,6 +22,9 @@ const eslintConfig = [
 
       // Desativa o erro de caracteres especiais (aspas, etc) no HTML
       "react/no-unescaped-entities": "off",
+
+      // Permite o uso do tipo 'any'
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];

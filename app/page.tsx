@@ -1,10 +1,7 @@
-import BetterWay from "@/app/components/better-way";
+import WelcomePage from "@/app/welcome/page";
 
 
 export default function Home() {
-    return (
-        <main>
-            <BetterWay/>
-        </main>
-    );
+    return <WelcomePage/>
+
 }

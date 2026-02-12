@@ -1,9 +1,10 @@
 'use client';
 
 import {CSSProperties, useEffect, useRef, useState} from "react";
-import './styles.css'
+import '../styles.css'
 import {InputSwitch} from "primereact/inputswitch";
 import {io, Socket} from "socket.io-client";
+import {redirect, useParams} from "next/navigation";
 
 enum ESymbol {
     X = 'X',
@@ -33,7 +34,22 @@ const possibleVictories = [
     [3, 5, 7],
 ]
 
+interface MessageData {
+    op: string;
+    id: string;
+    data: any;
+}
+
+interface ErrorData {
+    op: string;
+    id: string;
+    msg: string;
+}
+
 export default function Tictactoe() {
+
+    const {id} = useParams();
+
     const [currentGame, setCurrentGame] = useState(0);
     const [turn, setTurn] = useState<ESymbol>(ESymbol.X);
     const [winner, setWinner] = useState<ESymbol | undefined>(undefined);
@@ -42,14 +58,10 @@ export default function Tictactoe() {
     const [showInnerGames, setShowInnerGames] = useState<boolean>(false);
 
     const [games, setGames] = useState<Game[]>([]);
+    const [players, setPlayers] = useState<string[]>([]);
 
     // 1. Usamos um useRef para guardar a instância do socket sem causar re-renderizações
     const socketRef = useRef<Socket | null>(null);
-    const [messages, setMessages] = useState<string[]>([]);
-
-    useEffect(() => {
-        console.log(messages)
-    }, [messages]);
 
     useEffect(() => {
         const games: Game[] = [];
@@ -69,23 +81,55 @@ export default function Tictactoe() {
     }, [])
 
     useEffect(() => {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            localStorage.setItem('tictactoe_id', id as string)
+            redirect('/')
+        }
+
         // 2. Conectamos ao backend separado (aquele do node-tests)
-        socketRef.current = io('http://192.168.2.91:3001');
+        socketRef.current = io('http://192.168.2.91:3001', {
+            auth: {
+                tictactoe_id: id,
+            }
+        });
 
         // 3. Ouvimos os eventos que o servidor envia
-        socketRef.current.on('message', (data: { text: string }) => {
-            setMessages((prev) => [...prev, data.text]);
+        socketRef.current.on('message', (msg: MessageData) => {
+            console.log('Msg recebida', msg);
+            handleMessage(msg)
         });
+
+        socketRef.current.on('error', (msg: ErrorData) => {
+            console.log('Erro recebido', msg);
+            handleError(msg);
+        })
+
+        socketRef.current?.emit('message', {op: 'user.signed', id, data: {username}})
 
         // 4. LIMPEZA: Quando o usuário sair da página, desconectamos o socket
         return () => {
             socketRef.current?.disconnect();
         };
+
     }, []);
 
+    const handleError = (msg: ErrorData) => {
+        alert(msg.msg);
+        if (msg.op === 'user.signed') {
+            redirect('/')
+        }
+    }
+
+    const handleMessage = (msg: {op: string, data: any}) => {
+        if (msg.op === 'players.update') {
+           setPlayers(msg.data);
+        }
+    }
+
     const sendMessage = () => {
-            // 5. Enviamos o evento para o servidor
-            socketRef.current?.emit('message', { text: 'test' });
+        // 5. Enviamos o evento para o servidor
+        socketRef.current?.emit('message', { text: 'test' });
     };
 
     useEffect(() => {
@@ -219,6 +263,7 @@ export default function Tictactoe() {
     return (
         <div className={'md:px-8 px-3 w-full flex flex-column justify-content-start align-items-center'}>
             <h1 className={'text-center'}>Jogo da Velha 2</h1>
+            {players.length > 0 && <span>Jogadores: {players.join(', ')}</span>}
             <div className={'flex w-full md:w-6 justify-content-between align-items-center'}>
                 <h2>Vez de <span className={turn}>{turn}</span></h2>
                 <div className={'flex align-items-center gap-2'}>
