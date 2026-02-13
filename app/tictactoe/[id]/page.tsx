@@ -48,7 +48,7 @@ interface ErrorData {
 
 export default function Tictactoe() {
 
-    const {id} = useParams();
+    const {id}: {id: string} = useParams();
 
     const [currentGame, setCurrentGame] = useState(0);
     const [turn, setTurn] = useState<ESymbol>(ESymbol.X);
@@ -260,9 +260,19 @@ export default function Tictactoe() {
 
     console.log({winner, mark})
 
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('Código da sala copiado!')
+        } catch (err) {
+            console.error("Erro ao copiar:", err);
+        }
+    };
+
     return (
         <div className={'md:px-8 px-3 w-full flex flex-column justify-content-start align-items-center'}>
             <h1 className={'text-center'}>Jogo da Velha 2</h1>
+            <span>Código da sala: <strong className={'cursor-pointer'} onClick={() => copyToClipboard(id)}>{id} <i className={'pi pi-copy'}></i></strong></span>
             {players.length > 0 && <span>Jogadores: {players.join(', ')}</span>}
             <div className={'flex w-full md:w-6 justify-content-between align-items-center'}>
                 <h2>Vez de <span className={turn}>{turn}</span></h2>
