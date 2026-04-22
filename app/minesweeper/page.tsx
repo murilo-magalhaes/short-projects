@@ -88,6 +88,29 @@ export default function Minesweeper() {
         setBoard(board);
     }
 
+    const revealCell = (cell: ICell): ICell  => {
+        if(cell.isRevealed || cell.isFlagged) return;
+
+        return {
+            ...cell,
+            isRevealed: true,
+        }
+    }
+
+    const onClickCell = (cell: ICell) => {
+        revealCell(cell)
+    }
+
+    const onRightClickCell = (cell: ICell) => {
+        if(cell.isRevealed) return;
+        board[cell.x][cell.y] = {
+            ...cell,
+            isFlagged: !cell.isFlagged,
+        }
+        setBoard([...board])
+
+    }
+
     return (
         <div className={'w-full flex justify-content-center'}>
             <div>
@@ -99,8 +122,18 @@ export default function Minesweeper() {
                             const cell = board[i][j]
                             // console.log(cell, i, j)
                             return (
-                                <div key={j} className={`cell ${i % 2 === j % 2 ? 'dark' : 'light'}`}>
+                                <div
+                                    key={j}
+                                    className={`cell ${i % 2 === j % 2 ? 'dark' : 'light'} ${cell.isRevealed ? 'revealed' : 'unrevealed'}`}
+                                    onClick={() => onClickCell(cell)}
+                                    onContextMenu={e => {
+                                        e.preventDefault();
+                                        onRightClickCell(cell);
+                                    }}
+                                >
                                     {cell.isMine && <span>M</span>}
+                                    {cell.adjacentMines > 0 && cell.isRevealed && <span>{cell.adjacentMines}</span>}
+                                    {cell.isFlagged && <span>F</span>}
                                 </div>
                             )
                         })
