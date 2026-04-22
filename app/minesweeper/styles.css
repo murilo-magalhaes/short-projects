@@ -1,0 +1,21 @@
+:root {
+    --light-color: #A9D751;
+    --dark-color: #A2D049;
+    --highlight-color: #BEE17D;
+}
+
+.cell {
+    height: calc(100vh / 20);
+    aspect-ratio: 1/1;
+}
+
+.cell:hover {
+    background-color: var(--highlight-color);
+}
+.light {
+    background-color: var(--light-color);
+}
+
+.dark {
+    background-color: var(--dark-color);
+}

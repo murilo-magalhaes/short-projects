@@ -20,9 +20,12 @@ export default function RootLayout({
         <html lang="pt-BR">
         <head>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+            <title></title>
         </head>
-        <body>
-        <header className={'p-2 w-full'}>
+        <body style={{
+            backgroundColor: 'var(--bluegray-700)'
+        }}>
+        <header className={'p-2 w-full'} suppressHydrationWarning>
             <i className={'pi pi-home cursor-pointer'} style={{fontSize: '2rem'}} onClick={() => redirect('/')}></i>
         </header>
         <div className={'flex h-full'}>
