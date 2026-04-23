@@ -31,7 +31,8 @@ export default function Minesweeper() {
     const [clicksCount, setClicksCount] = useState<number>(0)
 
     useEffect(() => {
-        mountBoard()
+        const board = mountBoard()
+        setBoard(board)
     }, []);
 
     const playSoundEffect = (sound: ESoundEffect) => {
@@ -63,24 +64,21 @@ export default function Minesweeper() {
         return board;
     }
 
-    const getAdjacents = (board: ICell[][], cell: ICell, onlyEmpties: boolean = false, radius: number = 1) => {
+    const getAdjacents = (board: ICell[][], cell: ICell, radius: number = 1) => {
         const adjacents: ICell[] = [];
         for (let i = Math.max(0, cell.x - radius); i <= Math.min(COLS - 1, cell.x + radius); i++) {
             for (let j = Math.max(0, cell.y - radius); j <= Math.min(ROWS - 1, cell.y + radius); j++) {
-                const lookingCell = board[i][j];
-                if (!onlyEmpties || (onlyEmpties && !lookingCell.isMine)) {
-                    adjacents.push(lookingCell);
-                }
+                    adjacents.push(board[i][j]);
             }
         }
 
         return adjacents
     }
 
-    const generateMines = (clickedCell: ICell) => {
+    const generateMines = (clickedCell: ICell): ICell[][] => {
         const mines: [number, number][] = []
 
-        const adjacents = getAdjacents(board, clickedCell, false, 2);
+        const adjacents = getAdjacents(board, clickedCell, 2);
         const forbiddenCells = [...adjacents.map(cell => [cell.x, cell.y]), [clickedCell.x, clickedCell.y]]
 
         while (mines.length < 40) {
@@ -93,10 +91,11 @@ export default function Minesweeper() {
             }
         }
 
-        mountBoard(mines)
+        return mountBoard(mines);
+
     }
 
-    const mountBoard = (mines?: [number, number][]) => {
+    const mountBoard = (mines?: [number, number][]): ICell[][] => {
         let board: ICell[][] = [];
         for (let i = 0; i < COLS; i++) {
             for (let j = 0; j < ROWS; j++) {
@@ -118,74 +117,90 @@ export default function Minesweeper() {
             board = checkAdjacentsAndModify(board, cell, noFilter, incrementAdjacentsMines)
         })
 
-        setBoard(board);
+        return board
     }
 
     const lose = () => {
         playSoundEffect(ESoundEffect.MINE)
     }
 
-    const revealCell = (cell: ICell) => {
-        // 3. Criar uma cópia profunda para manipulação direta
-        // Se o seu board for muito grande, considere uma cópia por linha
-        const newBoard = [...board.map(row => [...row])];
-
-        // 4. Função interna recursiva para modificar a cópia
+    const revealCell = (cell: ICell, board: ICell[][], recursive: boolean = true): ICell[][] => {
+        const newBoard = [...board];
         const revealRecursive = (x: number, y: number) => {
             const current = newBoard[x][y];
 
             if (current.isRevealed || current.isFlagged || current.isMine) return;
 
-            // Revela a célula na cópia
             newBoard[x][y] = {...current, isRevealed: true};
 
-            // 5. Só continua a recursão se a célula for vazia (0 minas ao redor)
-            // Se cell.neighborCount > 0, paramos aqui (revelamos o número e não expandimos)
             if (current.adjacentMines === 0) {
-                const adjacents = getAdjacents(newBoard, newBoard[x][y], true);
+                const adjacents = getAdjacents(newBoard, newBoard[x][y]).filter(adj => !adj.isMine);
                 adjacents.forEach((adj) => {
                     revealRecursive(adj.x, adj.y);
                 });
             }
         };
 
-        // Inicia a recursão na célula clicada
-        revealRecursive(cell.x, cell.y);
-
-        // 6. Atualiza o estado uma única vez
-        setBoard(newBoard);
+        if (recursive) {
+            revealRecursive(cell.x, cell.y);
+        } else {
+            // ✅ When not recursive, reveal only the single cell passed
+            const current = newBoard[cell.x][cell.y];
+            if (!current.isRevealed && !current.isFlagged && !current.isMine) {
+                newBoard[cell.x][cell.y] = {...current, isRevealed: true};
+            }
+        }
 
         playSoundEffect(clicksCount % 2 === 0 ? ESoundEffect.REVEAL1 : ESoundEffect.REVEAL2)
+        return newBoard
     };
 
     const onClickCell = (cell: ICell) => {
-        if (cell.isRevealed || cell.isFlagged) return;
-        if (cell.isMine) return lose();
-        if (clicksCount === 0) {
-            generateMines(cell);
+        let _board: ICell[][] = board;
+
+        if (cell.isRevealed && cell.adjacentMines > 0) {
+            const adjacents = getAdjacents(_board, cell).filter(
+                adj => !adj.isFlagged && !adj.isRevealed
+            );
+
+            // ✅ If any adjacent (not flagged) is a mine, lose immediately
+            if (adjacents.some(adj => adj.isMine)) {
+                lose();
+                return;
+            }
+
+            adjacents.forEach((adj) => {
+                _board = revealCell(adj, _board, false);
+            });
+
         } else {
-            revealCell(cell)
+            if (cell.isRevealed || cell.isFlagged) return;
+            if (cell.isMine) return lose();
+            if (clicksCount === 0) {
+                _board = generateMines(cell);
+            }
+            _board = revealCell(cell, _board);
         }
-        setClicksCount(prev => prev + 1)
+
+        setBoard(_board);
+        setClicksCount(prev => prev + 1);
     }
 
     const onRightClickCell = (cell: ICell) => {
         if (cell.isRevealed) return;
-        board[cell.x][cell.y] = {
+        const newBoard = [...board];
+        newBoard[cell.x][cell.y] = {
             ...cell,
             isFlagged: !cell.isFlagged,
         }
-        setBoard([...board])
-
-
+        setBoard(newBoard)
 
         playSoundEffect(cell.isFlagged ? ESoundEffect.REMOVE_FLAG : ESoundEffect.ADD_FLAG)
-
     }
 
     const colors = ['blue', 'green', 'red']
-    const buildCellClasses = (cell: ICell): string => {
 
+    const buildCellClasses = (cell: ICell): string => {
         const classes = ['cell'];
 
         classes.push(cell.x % 2 === cell.y % 2 ? 'dark' : 'light');
@@ -228,12 +243,10 @@ export default function Minesweeper() {
                                     }
                                 </div>
                             )
-                        })
-                        }
+                        })}
                     </div>
                 ))}
             </div>
         </div>
-
     )
 }

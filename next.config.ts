@@ -1,6 +1,13 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+    webpack: (config) => {
+        config.watchOptions = {
+            poll: 1000,       // check for changes every second
+            aggregateTimeout: 300,
+        };
+        return config;
+    },
     images: {
         remotePatterns: [
             {
