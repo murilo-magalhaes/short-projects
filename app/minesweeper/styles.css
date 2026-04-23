@@ -25,18 +25,20 @@
         &.dark {
             background-color: var(--unrevealed-dark-color);
         }
+
+        &:hover {
+            background-color: var(--highlight-color);
+        }
     }
 
     &.revealed {
         &.light {
             background-color: var(--revealed-light-color);
         }
+
         &.dark {
             background-color: var(--revealed-dark-color);
         }
     }
-
-    &:hover {
-        background-color: var(--highlight-color);
-    }
 }
+
