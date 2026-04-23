@@ -3,6 +3,8 @@ import {useEffect, useRef, useState} from "react";
 import randomNumber from "@/utils/numbers/randomNumber";
 import './styles.css'
 import Image from "next/image";
+import {Button} from "primereact/button";
+import delay from "@/utils/delay";
 
 interface ICell {
     x: number;
@@ -160,7 +162,7 @@ export default function Minesweeper() {
         if (cell.isRevealed || cell.isFlagged) return;
         if (cell.isMine) return lose();
         if (clicksCount === 0) {
-            generateMines(cell)
+            generateMines(cell);
         } else {
             revealCell(cell)
         }
@@ -174,6 +176,8 @@ export default function Minesweeper() {
             isFlagged: !cell.isFlagged,
         }
         setBoard([...board])
+
+
 
         playSoundEffect(cell.isFlagged ? ESoundEffect.REMOVE_FLAG : ESoundEffect.ADD_FLAG)
 
@@ -193,7 +197,14 @@ export default function Minesweeper() {
     return (
         <div className={'w-full flex justify-content-center'}>
             <div>
-                <h1 className={'text-center'}>Campo minado</h1>
+                <h1 className={'text-center m-0'}>Campo minado</h1>
+                <div className={'p-2 flex justify-content-between'}>
+                    <div className={'flex align-items-center'}>
+                        <Image src={'/assets/flag.png'} width={50} height={30} alt={'Flag'}/>
+                        <span className={'font-bold text-xl text-white'}>{40 - board.flat().filter(cell => cell.isFlagged).length}</span>
+                    </div>
+                    <Button label={'Reiniciar'} onClick={() => window.location.reload()}/>
+                </div>
                 {board.length > 0 && Array.from({length: ROWS}).map((_, i) => (
                     <div key={i} className={'flex'}>
                         {Array.from({length: COLS}).map((_, j) => {
