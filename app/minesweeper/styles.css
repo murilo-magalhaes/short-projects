@@ -6,8 +6,13 @@
     --highlight-color: #BEE17D;
 }
 
+body {
+    min-width: 100vh;
+    min-height: 100vw;
+}
+
 .cell {
-    height: calc(100vh / 20);
+    height: calc(100vh / 19);
     aspect-ratio: 1/1;
     display: flex;
     justify-content: center;
@@ -58,4 +63,3 @@
         }
     }
 }
-

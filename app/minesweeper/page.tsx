@@ -264,7 +264,7 @@ export default function Minesweeper() {
     }
 
     return (
-        <div className={'w-full flex justify-content-center'}>
+        <div className={'w-full flex justify-content-center mx-8'}>
             <div>
                 <h1 className={'text-center text-white m-0'}>Campo minado</h1>
                 <div className={'p-2 flex justify-content-between'}>
