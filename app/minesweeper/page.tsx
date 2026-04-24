@@ -301,7 +301,7 @@ export default function Minesweeper() {
                                             color: colors[cell.adjacentMines - 1] || 'black'
                                         }}>{cell.adjacentMines}</span>}
                                     {cell.isFlagged &&
-                                        <Image src={'/assets/flag.png'} width={40} height={30} alt={'Flag'}/>
+                                        <Image className={'flag'} src={'/assets/flag.png'} width={40} height={30} alt={'Flag'}/>
                                     }
                                     {cell.isMine && (mPressed || gameStatus === EGameStatus.LOST) &&
                                         <Image src={'/assets/mine1.png'} width={25} height={25} alt={'Mine'}/>

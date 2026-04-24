@@ -12,6 +12,7 @@ body {
 }
 
 .cell {
+    position: relative;
     height: calc(100vh / 19);
     aspect-ratio: 1/1;
     display: flex;
@@ -61,5 +62,12 @@ body {
         &.dark {
             background-color: var(--revealed-dark-color);
         }
+    }
+
+    .flag {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 }
