@@ -10,6 +10,7 @@ import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import "./globals.css";
 import {ReactNode} from "react";
 import {redirect} from "next/navigation";
+import {AudioProvider} from "@/context/audio-context";
 
 export default function RootLayout({
                                        children,
@@ -29,7 +30,9 @@ export default function RootLayout({
             <i className={'pi pi-home cursor-pointer'} style={{fontSize: '2rem'}} onClick={() => redirect('/')}></i>
         </header>
         <div className={'flex h-full'}>
-            {children}
+            <AudioProvider>
+                {children}
+            </AudioProvider>
         </div>
         </body>
         </html>
