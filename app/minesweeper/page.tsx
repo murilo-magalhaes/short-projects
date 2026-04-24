@@ -206,6 +206,21 @@ export default function Minesweeper() {
         classes.push(cell.x % 2 === cell.y % 2 ? 'dark' : 'light');
         classes.push(cell.isRevealed ? 'revealed' : 'unrevealed')
 
+        if(!cell.isRevealed) {
+            if(board[cell.x - 1] && board[cell.x - 1][cell.y] && board[cell.x - 1][cell.y].isRevealed) {
+                classes.push('border-top');
+            }
+            if(board[cell.x + 1] && board[cell.x + 1][cell.y] && board[cell.x + 1][cell.y].isRevealed) {
+                classes.push('border-bottom');
+            }
+            if(board[cell.x] && board[cell.x][cell.y - 1] && board[cell.x][cell.y - 1].isRevealed) {
+                classes.push('border-left');
+            }
+            if(board[cell.x] && board[cell.x][cell.y + 1] && board[cell.x][cell.y + 1].isRevealed) {
+                classes.push('border-right');
+            }
+        }
+
         return classes.join(' ');
     }
 

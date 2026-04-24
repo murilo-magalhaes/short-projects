@@ -15,6 +15,22 @@
     font-weight: bold;
     font-size: 1.5rem;
 
+    &.border-right {
+        border-right: 2px solid green;
+    }
+
+    &.border-left {
+        border-left: 2px solid green;
+    }
+
+    &.border-top {
+        border-top: 2px solid green;
+    }
+
+    &.border-bottom {
+        border-bottom: 2px solid green;
+    }
+
     &.unrevealed {
         cursor: pointer;
 
